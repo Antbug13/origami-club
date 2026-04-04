@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Origami Club – Class Recordings</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f0e8; --surface: #faf7f2; --surface2: #ede8df;
+    --ink: #1e1a14; --ink2: #5a5248; --ink3: #9c9186;
+    --accent: #4a7c59; --accent2: #c97d3a;
+    --tag-bg: #e8e2d6; --tag-ink: #4a4238;
+    --border: rgba(30,26,20,0.12);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+  /* GATE */
+  #gate { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  .gate-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem 2rem; width: 100%; max-width: 380px; text-align: center; }
+  .gate-box h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+  .gate-box h1 span { color: var(--accent); }
+  .gate-sub { font-size: 14px; color: var(--ink3); margin-bottom: 1.75rem; }
+  .gate-input-wrap { position: relative; margin-bottom: 10px; }
+  .gate-input { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 44px 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink); outline: none; letter-spacing: 0.08em; transition: border-color 0.15s; text-align: center; }
+  .gate-input:focus { border-color: var(--accent); }
+  .gate-input.error { border-color: #c94a4a; animation: shake 0.3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .gate-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--ink3); padding: 4px; display: flex; align-items: center; }
+  .gate-error { font-size: 13px; color: #c94a4a; margin-bottom: 10px; min-height: 18px; }
+  .gate-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .gate-btn:hover { opacity: 0.87; }
+  .gate-hint { margin-top: 1.25rem; font-size: 12px; color: var(--ink3); }
+
+  /* SYNC BANNER */
+  .sync-banner { background: #fde8cc; color: #8a4e10; font-size: 13px; padding: 8px 2rem; display: flex; align-items: center; gap: 8px; }
+  .sync-banner.error { background: #f8d8d8; color: #8a2020; }
+  .spinner { width: 14px; height: 14px; border: 2px solid rgba(138,78,16,0.3); border-top-color: #8a4e10; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* HEADER */
+  .site-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-text { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--ink); }
+  .logo-text span { color: var(--accent); }
+  .header-actions { display: flex; align-items: center; gap: 1rem; }
+  .search-wrap { position: relative; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.4; pointer-events: none; }
+  .search-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px 7px 32px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); width: 220px; outline: none; transition: border-color 0.15s; }
+  .search-input::placeholder { color: var(--ink3); }
+  .search-input:focus { border-color: var(--accent); }
+  .add-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.15s; }
+  .add-btn:hover { opacity: 0.87; }
+
+  /* HERO */
+  .hero { background: var(--surface); border-bottom: 1px solid var(--border); padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  .hero-bg-pattern { position: absolute; right: -20px; top: -20px; opacity: 0.06; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 6px; }
+  .hero h1 em { font-style: italic; color: var(--accent2); }
+  .hero-sub { color: var(--ink2); font-size: 15px; margin-bottom: 1.5rem; }
+  .stats-row { display: flex; gap: 2rem; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; }
+  .stat-num { font-size: 22px; font-weight: 500; }
+  .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink3); }
+
+  /* FILTERS */
+  .filters-bar { padding: 1rem 2rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .filter-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink3); }
+  .chip { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--ink2); cursor: pointer; transition: all 0.15s; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .sort-select { margin-left: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--ink2); outline: none; }
+
+  /* GRID */
+  .main { padding: 1.5rem 2rem 3rem; }
+  .section-heading { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 400; font-style: italic; color: var(--ink3); margin-bottom: 1rem; }
+  .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+
+  /* CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(30,26,20,0.12); }
+  .card-thumb { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+  .thumb-bg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 56px; transition: transform 0.3s; }
+  .card:hover .thumb-bg { transform: scale(1.05); }
+  .thumb-overlay { position: absolute; inset: 0; background: rgba(20,15,10,0); display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .card:hover .thumb-overlay { background: rgba(20,15,10,0.28); }
+  .play-btn { width: 44px; height: 44px; background: rgba(255,255,255,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.8); transition: opacity 0.2s, transform 0.2s; }
+  .card:hover .play-btn { opacity: 1; transform: scale(1); }
+  .play-btn svg { margin-left: 2px; }
+  .card-duration { position: absolute; bottom: 8px; right: 8px; background: rgba(20,15,10,0.7); color: #fff; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 4px; }
+  .card-level { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; }
+  .level-beginner { background: #d8edde; color: #2d6b40; }
+  .level-intermediate { background: #fde8cc; color: #8a4e10; }
+  .level-advanced { background: #f8d8d8; color: #8a2020; }
+  .card-body { padding: 12px 14px 14px; }
+  .card-date { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink3); margin-bottom: 4px; }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; line-height: 1.3; margin-bottom: 6px; }
+  .card-desc { font-size: 13px; color: var(--ink2); line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tag { background: var(--tag-bg); color: var(--tag-ink); font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .card-instructor { font-size: 12px; color: var(--ink3); white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+
+  /* DETAIL MODAL */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(20,15,10,0.55); z-index: 200; align-items: center; justify-content: center; padding: 1.5rem; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(20,15,10,0.28); }
+  .modal-header { position: relative; aspect-ratio: 16/9; overflow: hidden; border-radius: 16px 16px 0 0; display: flex; align-items: center; justify-content: center; }
+  .modal-close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; background: rgba(255,255,255,0.85); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ink); z-index: 10; }
+  .modal-close:hover { background: #fff; }
+  .modal-body { padding: 1.5rem; }
+  .modal-level-date { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; line-height: 1.25; margin-bottom: 10px; }
+  .modal-desc { font-size: 14px; color: var(--ink2); line-height: 1.65; margin-bottom: 1.25rem; }
+  .modal-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .meta-item { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+  .meta-key { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink3); margin-bottom: 2px; }
+  .meta-val { font-size: 14px; font-weight: 500; }
+  .modal-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .watch-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s; }
+  .watch-btn:hover:not(:disabled) { opacity: 0.87; }
+  .watch-btn:disabled { opacity: 0.45; cursor: default; }
+
+  /* ADD MODAL */
+  .add-modal { display: none; position: fixed; inset: 0; background: rgba(20,15,10,0.55); z-index: 300; align-items: center; justify-content: center; padding: 1.5rem; }
+  .add-modal.open { display: flex; }
+  .add-form { background: var(--surface); border-radius: 16px; width: 100%; max-width: 480px; padding: 1.75rem; max-height: 90vh; overflow-y: auto; }
+  .add-form h2 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; margin-bottom: 1.25rem; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink3); margin-bottom: 5px; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color 0.15s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+  .form-group textarea { resize: vertical; min-height: 70px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 1.25rem; }
+  .cancel-btn { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink2); cursor: pointer; }
+  .save-btn { flex: 2; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .save-btn:disabled { opacity: 0.6; cursor: default; }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 4rem 2rem; color: var(--ink3); }
+  .empty-icon { font-size: 48px; margin-bottom: 1rem; }
+  .empty p { font-size: 15px; }
+
+  @media (max-width: 600px) {
+    .site-header { padding: 0 1rem; }
+    .hero, .filters-bar, .main { padding-left: 1rem; padding-right: 1rem; }
+    .hero h1 { font-size: 24px; }
+    .search-input { width: 140px; }
+    .stats-row { gap: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-box">
+    <svg style="margin:0 auto 1.25rem;display:block" width="48" height="48" viewBox="0 0 32 32" fill="none">
+      <path d="M16 4 L26 14 L20 16 L24 26 L16 20 L8 26 L12 16 L6 14 Z" fill="#4a7c59" opacity="0.85"/>
+      <path d="M16 4 L26 14 L20 16 L16 12 Z" fill="#4a7c59"/>
+      <path d="M16 4 L6 14 L12 16 L16 12 Z" fill="#2d5e3f"/>
+    </svg>
+    <h1>Origami <span>Club</span></h1>
+    <p class="gate-sub">Enter your access code to view class recordings.</p>
+    <div class="gate-input-wrap">
+      <input class="gate-input" type="password" id="gateInput" placeholder="Access code" onkeydown="if(event.key==='Enter')checkCode()">
+      <button class="gate-toggle" onclick="toggleGateVis()" title="Show/hide">
+        <svg id="eyeIcon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <ellipse cx="9" cy="9" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.3"/>
+          <circle cx="9" cy="9" r="2" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <p class="gate-error" id="gateError"></p>
+    <button class="gate-btn" onclick="checkCode()">Enter</button>
+    <p class="gate-hint">Members only — contact your club leader for the code.</p>
+  </div>
+</div>
+
+<!-- SYNC BANNER -->
+<div class="sync-banner" id="syncBanner" style="display:none">
+  <div class="spinner" id="syncSpinner"></div>
+  <span id="syncMsg">Loading videos…</span>
+</div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M16 4 L26 14 L20 16 L24 26 L16 20 L8 26 L12 16 L6 14 Z" fill="#4a7c59" opacity="0.85"/>
+      <path d="M16 4 L26 14 L20 16 L16 12 Z" fill="#4a7c59"/>
+      <path d="M16 4 L6 14 L12 16 L16 12 Z" fill="#2d5e3f"/>
+    </svg>
+    <span class="logo-text">Origami <span>Club</span></span>
+  </div>
+  <div class="header-actions">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#1e1a14" stroke-width="1.2"/><path d="M10 10L13 13" stroke="#1e1a14" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <input class="search-input" type="text" id="searchInput" placeholder="Search classes…">
+    </div>
+    <button class="add-btn" onclick="openAddModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 2v10M2 7h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Add Video
+    </button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <svg class="hero-bg-pattern" width="300" height="280" viewBox="0 0 300 280">
+    <path d="M150 20 L280 120 L220 140 L260 240 L150 180 L40 240 L80 140 L20 120 Z" fill="#4a7c59"/>
+    <path d="M150 20 L280 120 L220 140 L150 100 Z" fill="#2d5e3f"/>
+    <path d="M150 20 L20 120 L80 140 L150 100 Z" fill="#1a3d28"/>
+  </svg>
+  <h1>Class <em>Recordings</em></h1>
+  <p class="hero-sub">Browse and revisit every session from your origami club.</p>
+  <div class="stats-row">
+    <div class="stat"><span class="stat-num" id="totalCount">—</span><span class="stat-label">Sessions</span></div>
+    <div class="stat"><span class="stat-num" id="totalHours">—</span><span class="stat-label">Total Runtime</span></div>
+    <div class="stat"><span class="stat-num">3</span><span class="stat-label">Difficulty Levels</span></div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <span class="filter-label">Level</span>
+  <button class="chip active" onclick="setFilter('all',this)">All</button>
+  <button class="chip" onclick="setFilter('Beginner',this)">Beginner</button>
+  <button class="chip" onclick="setFilter('Intermediate',this)">Intermediate</button>
+  <button class="chip" onclick="setFilter('Advanced',this)">Advanced</button>
+  <select class="sort-select" id="sortSelect" onchange="renderGrid()">
+    <option value="newest">Newest first</option>
+    <option value="oldest">Oldest first</option>
+    <option value="az">A → Z</option>
+    <option value="duration">Longest first</option>
+  </select>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <p class="section-heading" id="sectionHeading">All sessions</p>
+  <div class="video-grid" id="videoGrid"></div>
+  <div class="empty" id="emptyState" style="display:none">
+    <div class="empty-icon">🕊️</div>
+    <p id="emptyMsg">No sessions yet — add the first one!</p>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal-backdrop" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+  <div class="modal">
+    <div class="modal-header" id="modalThumb">
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-level-date">
+        <span id="modalLevel" class="card-level"></span>
+        <span id="modalDate" style="font-size:12px;color:var(--ink3);margin-left:4px;"></span>
+      </div>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-meta-grid">
+        <div class="meta-item"><div class="meta-key">Duration</div><div class="meta-val" id="modalDuration"></div></div>
+        <div class="meta-item"><div class="meta-key">Instructor</div><div class="meta-val" id="modalInstructor"></div></div>
+        <div class="meta-item"><div class="meta-key">Level</div><div class="meta-val" id="modalLevelText"></div></div>
+        <div class="meta-item"><div class="meta-key">Attendees</div><div class="meta-val" id="modalAttendees"></div></div>
+      </div>
+      <div class="modal-tags" id="modalTags"></div>
+      <button class="watch-btn" id="watchBtn">
+        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 4l6 4-6 4V4z" fill="#fff"/></svg>
+        Watch Recording
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="add-modal" id="addModal" onclick="if(event.target===this)closeAddModal()">
+  <div class="add-form">
+    <h2>Add a New Session</h2>
+    <div class="form-group"><label>Session Title</label><input type="text" id="f_title" placeholder="e.g. Modular Star Box"></div>
+    <div class="form-group"><label>Description</label><textarea id="f_desc" placeholder="What did the class cover?"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="f_date"></div>
+      <div class="form-group"><label>Duration</label><input type="text" id="f_duration" placeholder="e.g. 1h 20m"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Level</label><select id="f_level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+      <div class="form-group"><label>Instructor</label><input type="text" id="f_instructor" placeholder="Name"></div>
+    </div>
+    <div class="form-group"><label>Video URL (YouTube, Vimeo, Drive…)</label><input type="url" id="f_url" placeholder="https://…"></div>
+    <div class="form-group"><label>Tags (comma-separated)</label><input type="text" id="f_tags" placeholder="crane, modular, wet-folding"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Emoji</label><input type="text" id="f_emoji" placeholder="🦢" maxlength="2"></div>
+      <div class="form-group"><label>Attendees</label><input type="number" id="f_attendees" placeholder="12" min="1"></div>
+    </div>
+    <div class="form-group"><label>Thumbnail Color</label>
+      <select id="f_color">
+        <option value="#d8edde">Sage Green</option>
+        <option value="#fde8cc">Warm Amber</option>
+        <option value="#e6eef8">Dusty Blue</option>
+        <option value="#f0e6f8">Lavender</option>
+        <option value="#f8e6e6">Blush Rose</option>
+        <option value="#e6f8f0">Mint</option>
+        <option value="#f8f4e6">Cream</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="cancel-btn" onclick="closeAddModal()">Cancel</button>
+      <button class="save-btn" id="saveBtn" onclick="saveVideo()">Save Session</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ACCESS_CODE = 'qwerty';
+const SESSION_KEY = 'origami_club_access';
+const STORAGE_KEY = 'origami_club_videos';
+
+// ── GATE ──
+function checkCode() {
+  const val = document.getElementById('gateInput').value;
+  const inp = document.getElementById('gateInput');
+  if (val === ACCESS_CODE) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('gate').style.display = 'none';
+    init();
+  } else {
+    document.getElementById('gateError').textContent = 'Incorrect code. Please try again.';
+    inp.classList.add('error');
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('error'), 400);
+  }
+}
+
+function toggleGateVis() {
+  const inp = document.getElementById('gateInput');
+  const icon = document.getElementById('eyeIcon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.innerHTML = '<ellipse cx="9" cy="9" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="3" y1="3" x2="15" y2="15" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>';
+  } else {
+    inp.type = 'password';
+    icon.innerHTML = '<ellipse cx="9" cy="9" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2" fill="currentColor"/>';
+  }
+}
+
+// ── STATE ──
+let videos = [];
+let currentFilter = 'all';
+
+// ── STORAGE ──
+async function loadVideos() {
+  showSync('Loading videos…');
+  try {
+    if (typeof window.storage !== 'undefined') {
+      const result = await window.storage.get(STORAGE_KEY, true);
+      videos = result ? JSON.parse(result.value) : getDefaults();
+      if (!result) await persistVideos();
+    } else {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      videos = stored ? JSON.parse(stored) : getDefaults();
+      if (!stored) localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+    }
+  } catch(e) {
+    videos = getDefaults();
+  }
+  hideSync();
+  renderGrid();
+}
+
+async function persistVideos() {
+  showSync('Saving…');
+  try {
+    if (typeof window.storage !== 'undefined') {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(videos), true);
+    } else {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(videos));
+    }
+    hideSync();
+    return true;
+  } catch(e) {
+    showSync('Could not save. Please try again.', true);
+    setTimeout(hideSync, 3500);
+    return false;
+  }
+}
+
+function showSync(msg, isErr) {
+  const b = document.getElementById('syncBanner');
+  b.style.display = 'flex';
+  b.className = 'sync-banner' + (isErr ? ' error' : '');
+  document.getElementById('syncSpinner').style.display = isErr ? 'none' : 'block';
+  document.getElementById('syncMsg').textContent = msg;
+}
+
+function hideSync() {
+  document.getElementById('syncBanner').style.display = 'none';
+}
+
+// ── HELPERS ──
+function levelClass(l) {
+  return l === 'Beginner' ? 'level-beginner' : l === 'Intermediate' ? 'level-intermediate' : 'level-advanced';
+}
+
+function fmtDate(d) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  let list = videos.filter(v => {
+    if (currentFilter !== 'all' && v.level !== currentFilter) return false;
+    if (q && !v.title.toLowerCase().includes(q) && !(v.tags||[]).join(' ').toLowerCase().includes(q) && !v.instructor.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (sort === 'newest') list.sort((a,b) => b.date.localeCompare(a.date));
+  else if (sort === 'oldest') list.sort((a,b) => a.date.localeCompare(b.date));
+  else if (sort === 'az') list.sort((a,b) => a.title.localeCompare(b.title));
+  else if (sort === 'duration') list.sort((a,b) => b.durationMin - a.durationMin);
+  return list;
+}
+
+// ── RENDER ──
+function renderGrid() {
+  const list = getFiltered();
+  const grid = document.getElementById('videoGrid');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('totalCount').textContent = videos.length;
+  document.getElementById('totalHours').textContent = Math.round(videos.reduce((s,v) => s+(v.durationMin||0), 0) / 60) + 'h';
+  document.getElementById('sectionHeading').textContent = currentFilter === 'all' ? 'All sessions' : currentFilter + ' sessions';
+  if (list.length === 0) {
+    grid.innerHTML = '';
+    document.getElementById('emptyMsg').textContent = videos.length === 0 ? 'No sessions yet — add the first one!' : 'No sessions match your search.';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = list.map(v => `
+    <div class="card" onclick="openVideo(${v.id})">
+      <div class="card-thumb">
+        <div class="thumb-bg" style="background:${v.color||'#d8edde'}">${v.emoji||'📄'}</div>
+        <div class="thumb-overlay"><div class="play-btn"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3.5l8 4.5-8 4.5V3.5z" fill="#1e1a14"/></svg></div></div>
+        <span class="card-duration">${v.duration}</span>
+        <span class="card-level ${levelClass(v.level)}">${v.level}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-date">${fmtDate(v.date)}</div>
+        <div class="card-title">${v.title}</div>
+        <div class="card-desc">${v.desc}</div>
+        <div class="card-footer">
+          <div class="tags">${(v.tags||[]).slice(0,2).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="card-instructor"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="4" r="2.5" fill="none" stroke="currentColor" stroke-width="1"/><path d="M1 11c0-2.76 2.24-5 5-5s5 2.24 5 5" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${v.instructor.split(' ').pop()}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+document.getElementById('searchInput').addEventListener('input', renderGrid);
+
+// ── DETAIL MODAL ──
+function openVideo(id) {
+  const v = videos.find(x => x.id === id);
+  if (!v) return;
+  const th = document.getElementById('modalThumb');
+  th.style.background = v.color || '#d8edde';
+  const prev = th.querySelector('.modal-emoji');
+  if (prev) prev.remove();
+  const em = document.createElement('span');
+  em.className = 'modal-emoji';
+  em.style.fontSize = '72px';
+  em.textContent = v.emoji || '📄';
+  th.appendChild(em);
+  const lvlEl = document.getElementById('modalLevel');
+  lvlEl.textContent = v.level;
+  lvlEl.className = 'card-level ' + levelClass(v.level);
+  document.getElementById('modalDate').textContent = fmtDate(v.date);
+  document.getElementById('modalTitle').textContent = v.title;
+  document.getElementById('modalDesc').textContent = v.desc;
+  document.getElementById('modalDuration').textContent = v.duration;
+  document.getElementById('modalInstructor').textContent = v.instructor;
+  document.getElementById('modalLevelText').textContent = v.level;
+  document.getElementById('modalAttendees').textContent = (v.attendees||0) + ' members';
+  document.getElementById('modalTags').innerHTML = (v.tags||[]).map(t=>`<span class="tag" style="font-size:12px;padding:4px 10px;">${t}</span>`).join('');
+  const wb = document.getElementById('watchBtn');
+  wb.disabled = !v.url;
+  wb.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 4l6 4-6 4V4z" fill="#fff"/></svg> ' + (v.url ? 'Watch Recording' : 'No link added yet');
+  wb.onclick = v.url ? () => window.open(v.url, '_blank') : null;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  const em = document.querySelector('.modal-emoji');
+  if (em) em.remove();
+}
+
+// ── ADD MODAL ──
+function openAddModal() {
+  document.getElementById('f_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeAddModal() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+async function saveVideo() {
+  const title = document.getElementById('f_title').value.trim();
+  if (!title) { alert('Please enter a session title.'); return; }
+  const tagStr = document.getElementById('f_tags').value;
+  const tags = tagStr ? tagStr.split(',').map(t=>t.trim()).filter(Boolean) : [];
+  const dStr = document.getElementById('f_duration').value.trim() || '1h';
+  const dMin = (() => {
+    let m = 0;
+    const h = dStr.match(/(\d+)\s*h/), mn = dStr.match(/(\d+)\s*m/);
+    if (h) m += parseInt(h[1])*60;
+    if (mn) m += parseInt(mn[1]);
+    return m || 60;
+  })();
+  const newV = {
+    id: Date.now(), title,
+    date: document.getElementById('f_date').value || new Date().toISOString().slice(0,10),
+    duration: dStr, durationMin: dMin,
+    level: document.getElementById('f_level').value,
+    instructor: document.getElementById('f_instructor').value.trim() || 'Club Leader',
+    emoji: document.getElementById('f_emoji').value.trim() || '📄',
+    color: document.getElementById('f_color').value,
+    desc: document.getElementById('f_desc').value.trim() || 'Session recording.',
+    tags, attendees: parseInt(document.getElementById('f_attendees').value)||0,
+    url: document.getElementById('f_url').value.trim(),
+  };
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  videos.unshift(newV);
+  const ok = await persistVideos();
+  btn.disabled = false; btn.textContent = 'Save Session';
+  if (ok) {
+    closeAddModal();
+    ['f_title','f_desc','f_duration','f_instructor','f_url','f_tags','f_emoji','f_attendees'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f_level').value = 'Beginner';
+    renderGrid();
+  } else {
+    videos.shift();
+  }
+}
+
+// ── DEFAULT DATA ──
+function getDefaults() {
+  return [
+    {id:1,title:"Paper Crane — Classic Orizuru",date:"2025-09-06",duration:"1h 05m",durationMin:65,level:"Beginner",instructor:"Ms. Tanaka",emoji:"🕊️",color:"#d8edde",desc:"The timeless Japanese crane. We covered mountain and valley folds, the petal fold, and finished with shaping the wings and inflating the body.",tags:["crane","traditional","wet-folding"],attendees:18,url:""},
+    {id:2,title:"Modular Sonobe Cube",date:"2025-09-20",duration:"1h 40m",durationMin:100,level:"Intermediate",instructor:"Ms. Tanaka",emoji:"📦",color:"#fde8cc",desc:"Twelve identical Sonobe units assembled into a stellated cube. Great intro to modular origami and 3D construction.",tags:["modular","geometric","3D"],attendees:14,url:""},
+    {id:3,title:"Kusudama Flower Ball",date:"2025-10-04",duration:"2h 10m",durationMin:130,level:"Intermediate",instructor:"Mr. Osei",emoji:"🌸",color:"#f0e6f8",desc:"A traditional kusudama built from 60 petals. This session covered wet folding for softer curves and gluing techniques.",tags:["modular","floral","kusudama"],attendees:12,url:""},
+    {id:4,title:"Dragon — Complex Model",date:"2025-10-18",duration:"2h 55m",durationMin:175,level:"Advanced",instructor:"Ms. Tanaka",emoji:"🐉",color:"#f8e6e6",desc:"A detailed single-sheet dragon using box-pleating, reverse folds, and sink folds. Members pre-creased a 32×32 grid.",tags:["dragon","complex","box-pleating"],attendees:9,url:""},
+    {id:5,title:"Jumping Frog & Lily Pad",date:"2025-11-01",duration:"55m",durationMin:55,level:"Beginner",instructor:"Mr. Osei",emoji:"🐸",color:"#e6f8f0",desc:"A fun action model — fold a frog that actually jumps! Paired with a lily pad base. Perfect for gifting and kids' events.",tags:["action","frog","gift"],attendees:22,url:""},
+    {id:6,title:"Origami Tessellations Intro",date:"2025-11-15",duration:"1h 50m",durationMin:110,level:"Advanced",instructor:"Ms. Tanaka",emoji:"🔷",color:"#e6eef8",desc:"Introduction to flat tessellations: the twist fold, pleat intersections, and the classic waterbomb base pattern.",tags:["tessellation","geometric","flat"],attendees:10,url:""},
+    {id:7,title:"Simple Star Box",date:"2025-12-06",duration:"1h 15m",durationMin:75,level:"Beginner",instructor:"Mr. Osei",emoji:"⭐",color:"#f8f4e6",desc:"A 4-pointed decorative star box perfect for holiday gifts. Introduced the squash fold and inside reverse fold.",tags:["box","star","holiday"],attendees:20,url:""},
+    {id:8,title:"Hydrangea — Flower Cluster",date:"2026-01-10",duration:"2h 05m",durationMin:125,level:"Intermediate",instructor:"Ms. Tanaka",emoji:"💐",color:"#f0e6f8",desc:"Shuzo Fujimoto's iconic hydrangea. Uses the petal fold recursively to produce a stunning 3D flower cluster.",tags:["floral","fujimoto","recursive"],attendees:15,url:""},
+  ];
+}
+
+// ── INIT ──
+function init() { loadVideos(); }
+
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('gate').style.display = 'none';
+  init();
+}
+</script>
+</body>
+</html>
