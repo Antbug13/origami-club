@@ -138,6 +138,13 @@
   .save-btn { flex: 2; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
   .save-btn:disabled { opacity: 0.6; cursor: default; }
 
+  /* CARD ACTIONS */
+  .card-actions { display: flex; gap: 6px; padding: 0 14px 12px; }
+  .card-edit-btn { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 7px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink2); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.15s; }
+  .card-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .card-del-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 7px 10px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--ink3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .card-del-btn:hover { border-color: #c94a4a; color: #c94a4a; background: #fff0f0; }
+
   /* EMPTY */
   .empty { text-align: center; padding: 4rem 2rem; color: var(--ink3); }
   .empty-icon { font-size: 48px; margin-bottom: 1rem; }
@@ -175,7 +182,7 @@
     </div>
     <p class="gate-error" id="gateError"></p>
     <button class="gate-btn" onclick="checkCode()">Enter</button>
-    <p class="gate-hint">Members only — contact your club leader for the code.</p>
+    <p class="gate-hint">Members use the club code. Club leader has a separate admin code.</p>
   </div>
 </div>
 
@@ -200,7 +207,7 @@
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#1e1a14" stroke-width="1.2"/><path d="M10 10L13 13" stroke="#1e1a14" stroke-width="1.2" stroke-linecap="round"/></svg>
       <input class="search-input" type="text" id="searchInput" placeholder="Search classes…">
     </div>
-    <button class="add-btn" onclick="openAddModal()">
+    <button class="add-btn" id="addVideoBtn" onclick="openAddModal()" style="display:none">
       <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 2v10M2 7h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
       Add Video
     </button>
@@ -314,17 +321,63 @@
   </div>
 </div>
 
+<!-- EDIT MODAL -->
+<div class="add-modal" id="editModal" onclick="if(event.target===this)closeEditModal()">
+  <div class="add-form">
+    <h2>Edit Session</h2>
+    <div class="form-group"><label>Session Title</label><input type="text" id="e_title"></div>
+    <div class="form-group"><label>Description</label><textarea id="e_desc"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="e_date"></div>
+      <div class="form-group"><label>Duration</label><input type="text" id="e_duration" placeholder="e.g. 1h 20m"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Level</label><select id="e_level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div>
+      <div class="form-group"><label>Instructor</label><input type="text" id="e_instructor"></div>
+    </div>
+    <div class="form-group"><label>Video URL</label><input type="url" id="e_url" placeholder="https://…"></div>
+    <div class="form-group"><label>Tags (comma-separated)</label><input type="text" id="e_tags"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Emoji</label><input type="text" id="e_emoji" maxlength="2"></div>
+      <div class="form-group"><label>Attendees</label><input type="number" id="e_attendees" min="1"></div>
+    </div>
+    <div class="form-group"><label>Thumbnail Color</label>
+      <select id="e_color">
+        <option value="#d8edde">Sage Green</option>
+        <option value="#fde8cc">Warm Amber</option>
+        <option value="#e6eef8">Dusty Blue</option>
+        <option value="#f0e6f8">Lavender</option>
+        <option value="#f8e6e6">Blush Rose</option>
+        <option value="#e6f8f0">Mint</option>
+        <option value="#f8f4e6">Cream</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+      <button class="save-btn" id="editSaveBtn" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const ACCESS_CODE = 'qwerty';
 const SESSION_KEY = 'origami_club_access';
+const ADMIN_CODE = 'ttkl@9244';
+const ADMIN_KEY = 'origami_club_admin';
 const STORAGE_KEY = 'origami_club_videos';
 
 // ── GATE ──
 function checkCode() {
   const val = document.getElementById('gateInput').value;
   const inp = document.getElementById('gateInput');
-  if (val === ACCESS_CODE) {
+  if (val === ADMIN_CODE) {
     sessionStorage.setItem(SESSION_KEY, '1');
+    sessionStorage.setItem(ADMIN_KEY, '1');
+    document.getElementById('gate').style.display = 'none';
+    init();
+  } else if (val === ACCESS_CODE) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    sessionStorage.removeItem(ADMIN_KEY);
     document.getElementById('gate').style.display = 'none';
     init();
   } else {
@@ -440,14 +493,14 @@ function renderGrid() {
   }
   empty.style.display = 'none';
   grid.innerHTML = list.map(v => `
-    <div class="card" onclick="openVideo(${v.id})">
-      <div class="card-thumb">
+    <div class="card">
+      <div class="card-thumb" onclick="openVideo(${v.id})" style="cursor:pointer">
         <div class="thumb-bg" style="background:${v.color||'#d8edde'}">${v.emoji||'📄'}</div>
         <div class="thumb-overlay"><div class="play-btn"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3.5l8 4.5-8 4.5V3.5z" fill="#1e1a14"/></svg></div></div>
         <span class="card-duration">${v.duration}</span>
         <span class="card-level ${levelClass(v.level)}">${v.level}</span>
       </div>
-      <div class="card-body">
+      <div class="card-body" onclick="openVideo(${v.id})" style="cursor:pointer">
         <div class="card-date">${fmtDate(v.date)}</div>
         <div class="card-title">${v.title}</div>
         <div class="card-desc">${v.desc}</div>
@@ -456,6 +509,15 @@ function renderGrid() {
           <div class="card-instructor"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="4" r="2.5" fill="none" stroke="currentColor" stroke-width="1"/><path d="M1 11c0-2.76 2.24-5 5-5s5 2.24 5 5" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${v.instructor.split(' ').pop()}</div>
         </div>
       </div>
+      ${isAdmin() ? `<div class="card-actions">
+        <button class="card-edit-btn" onclick="openEditModal(${v.id})">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M8.5 1.5l2 2L3 11H1V9L8.5 1.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          Edit
+        </button>
+        <button class="card-del-btn" onclick="deleteVideo(${v.id})" title="Delete">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 3h8M5 3V2h2v1M4 3v6h4V3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>` : ''}
     </div>`).join('');
 }
 
@@ -555,6 +617,79 @@ async function saveVideo() {
   }
 }
 
+// ── EDIT & DELETE ──
+let editingId = null;
+
+function openEditModal(id) {
+  const v = videos.find(x => x.id === id);
+  if (!v) return;
+  editingId = id;
+  document.getElementById('e_title').value = v.title;
+  document.getElementById('e_desc').value = v.desc;
+  document.getElementById('e_date').value = v.date;
+  document.getElementById('e_duration').value = v.duration;
+  document.getElementById('e_level').value = v.level;
+  document.getElementById('e_instructor').value = v.instructor;
+  document.getElementById('e_url').value = v.url || '';
+  document.getElementById('e_tags').value = (v.tags||[]).join(', ');
+  document.getElementById('e_emoji').value = v.emoji || '';
+  document.getElementById('e_attendees').value = v.attendees || '';
+  document.getElementById('e_color').value = v.color || '#d8edde';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
+}
+
+async function saveEdit() {
+  if (!editingId) return;
+  const title = document.getElementById('e_title').value.trim();
+  if (!title) { alert('Please enter a session title.'); return; }
+  const tagStr = document.getElementById('e_tags').value;
+  const tags = tagStr ? tagStr.split(',').map(t=>t.trim()).filter(Boolean) : [];
+  const dStr = document.getElementById('e_duration').value.trim() || '1h';
+  const dMin = (() => {
+    let m = 0;
+    const h = dStr.match(/(\d+)\s*h/), mn = dStr.match(/(\d+)\s*m/);
+    if (h) m += parseInt(h[1])*60;
+    if (mn) m += parseInt(mn[1]);
+    return m || 60;
+  })();
+  const idx = videos.findIndex(x => x.id === editingId);
+  if (idx === -1) return;
+  const updated = { ...videos[idx], title,
+    date: document.getElementById('e_date').value,
+    duration: dStr, durationMin: dMin,
+    level: document.getElementById('e_level').value,
+    instructor: document.getElementById('e_instructor').value.trim() || 'Club Leader',
+    emoji: document.getElementById('e_emoji').value.trim() || '📄',
+    color: document.getElementById('e_color').value,
+    desc: document.getElementById('e_desc').value.trim() || 'Session recording.',
+    tags, attendees: parseInt(document.getElementById('e_attendees').value)||0,
+    url: document.getElementById('e_url').value.trim(),
+  };
+  const btn = document.getElementById('editSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const original = videos[idx];
+  videos[idx] = updated;
+  const ok = await persistVideos();
+  btn.disabled = false; btn.textContent = 'Save Changes';
+  if (ok) { closeEditModal(); renderGrid(); }
+  else { videos[idx] = original; }
+}
+
+async function deleteVideo(id) {
+  if (!confirm('Delete this session? This cannot be undone.')) return;
+  const idx = videos.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  const removed = videos.splice(idx, 1);
+  const ok = await persistVideos();
+  if (!ok) { videos.splice(idx, 0, removed[0]); }
+  else { renderGrid(); }
+}
+
 // ── DEFAULT DATA ──
 function getDefaults() {
   return [
@@ -570,11 +705,20 @@ function getDefaults() {
 }
 
 // ── INIT ──
-function init() { loadVideos(); }
+function init() {
+  if (isAdmin()) {
+    document.getElementById('addVideoBtn').style.display = 'flex';
+  }
+  loadVideos();
+}
 
 if (sessionStorage.getItem(SESSION_KEY) === '1') {
   document.getElementById('gate').style.display = 'none';
   init();
+}
+
+function isAdmin() {
+  return sessionStorage.getItem(ADMIN_KEY) === '1';
 }
 </script>
 </body>
