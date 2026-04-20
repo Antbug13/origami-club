@@ -326,282 +326,300 @@ const BIN_ID = '69dc60fd856a682189295812';
 const API_KEY = '$2a$10$5Y3TZwTEseA8llJiIyP/je5QdRKqGWRXpWUHrsN9rjkysjvae3f.y';
 const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 function checkCode() {
-const val = document.getElementById('gateInput').value;
-const inp = document.getElementById('gateInput');
-if (val === ADMIN_CODE) {
-sessionStorage.setItem(SESSION_KEY, '1');
-sessionStorage.setItem(ADMIN_KEY, '1');
-document.getElementById('gate').style.display = 'none';
-init();
-} else if (val === ACCESS_CODE) {
-sessionStorage.setItem(SESSION_KEY, '1');
-sessionStorage.removeItem(ADMIN_KEY);
-document.getElementById('gate').style.display = 'none';
-init();
-} else {
-document.getElementById('gateError').textContent = 'Incorrect code. Please try again.';
-inp.classList.add('error');
-inp.value = '';
-setTimeout(() => inp.classList.remove('error'), 400);
-}
+  const val = document.getElementById('gateInput').value;
+  const inp = document.getElementById('gateInput');
+  if (val === ADMIN_CODE) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    sessionStorage.setItem(ADMIN_KEY, '1');
+    document.getElementById('gate').style.display = 'none';
+    init();
+  } else if (val === ACCESS_CODE) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    sessionStorage.removeItem(ADMIN_KEY);
+    document.getElementById('gate').style.display = 'none';
+    init();
+  } else {
+    document.getElementById('gateError').textContent = 'Incorrect code. Please try again.';
+    inp.classList.add('error');
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('error'), 400);
+  }
 }
 function toggleGateVis() {
-const inp = document.getElementById('gateInput');
-const icon = document.getElementById('eyeIcon');
-if (inp.type === 'password') {
-inp.type = 'text';
-icon.innerHTML = '<ellipse cx="9" cy="9" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="3" y1="3" x2="15" y2="15" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>';
-} else {
-inp.type = 'password';
-icon.innerHTML = '<ellipse cx="9" cy="9" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2" fill="currentColor"/>';
-}
+  const inp = document.getElementById('gateInput');
+  const icon = document.getElementById('eyeIcon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.innerHTML = '<ellipse cx="9" cy="9" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="3" y1="3" x2="15" y2="15" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>';
+  } else {
+    inp.type = 'password';
+    icon.innerHTML = '<ellipse cx="9" cy="9" rx="7" ry="4.5" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="9" r="2" fill="currentColor"/>';
+  }
 }
 let videos = [];
 let currentFilter = 'all';
 async function loadVideos() {
-showSync('Loading videos…');
-try {
-const resp = await fetch(BIN_URL + '/latest', {
-headers: { 'X-Master-Key': API_KEY }
-});
-if (!resp.ok) throw new Error('Fetch failed');
-const data = await resp.json();
-videos = Array.isArray(data.record) ? data.record : [];
-} catch(e) {
-showSync('Could not load videos. Check your connection.', true);
-setTimeout(hideSync, 4000);
-videos = [];
-}
-hideSync();
-renderGrid();
+  showSync('Loading videos…');
+  try {
+    const resp = await fetch(BIN_URL + '/latest', {
+      headers: { 'X-Master-Key': API_KEY }
+    });
+    if (!resp.ok) throw new Error('Fetch failed');
+    const data = await resp.json();
+    videos = Array.isArray(data.record) ? data.record : [];
+  } catch(e) {
+    showSync('Could not load videos. Check your connection.', true);
+    setTimeout(hideSync, 4000);
+    videos = [];
+  }
+  hideSync();
+  renderGrid();
 }
 async function persistVideos() {
-showSync('Saving…');
-try {
-const resp = await fetch(BIN_URL, {
-method: 'PUT',
-headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
-body: JSON.stringify(videos)
-});
-if (!resp.ok) throw new Error('Save failed');
-hideSync();
-return true;
-} catch(e) {
-showSync('Could not save. Please try again.', true);
-setTimeout(hideSync, 3500);
-return false;
-}
+  showSync('Saving…');
+  try {
+    const resp = await fetch(BIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+      body: JSON.stringify(videos)
+    });
+    if (!resp.ok) throw new Error('Save failed');
+    hideSync();
+    return true;
+  } catch(e) {
+    showSync('Could not save. Please try again.', true);
+    setTimeout(hideSync, 3500);
+    return false;
+  }
 }
 function showSync(msg, isErr) {
-const b = document.getElementById('syncBanner');
-b.style.display = 'flex';
-b.className = 'sync-banner' + (isErr ? ' error' : '');
-document.getElementById('syncSpinner').style.display = isErr ? 'none' : 'block';
-document.getElementById('syncMsg').textContent = msg;
+  const b = document.getElementById('syncBanner');
+  b.style.display = 'flex';
+  b.className = 'sync-banner' + (isErr ? ' error' : '');
+  document.getElementById('syncSpinner').style.display = isErr ? 'none' : 'block';
+  document.getElementById('syncMsg').textContent = msg;
 }
 function hideSync() { document.getElementById('syncBanner').style.display = 'none'; }
 function levelClass(l) {
-return l === 'Beginner' ? 'level-beginner' : l === 'Intermediate' ? 'level-intermediate' : 'level-advanced';
+  return l === 'Beginner' ? 'level-beginner' : l === 'Intermediate' ? 'level-intermediate' : 'level-advanced';
 }
 function fmtDate(d) {
-return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
 function getFiltered() {
-const q = document.getElementById('searchInput').value.toLowerCase();
-const sort = document.getElementById('sortSelect').value;
-let list = videos.filter(v => {
-if (currentFilter !== 'all' && v.level !== currentFilter) return false;
-if (q && !v.title.toLowerCase().includes(q) && !(v.tags||[]).join(' ').toLowerCase().includes(q) && !v.instructor.toLowerCase().includes(q)) return false;
-return true;
-});
-if (sort === 'newest') list.sort((a,b) => b.date.localeCompare(a.date));
-else if (sort === 'oldest') list.sort((a,b) => a.date.localeCompare(b.date));
-else if (sort === 'az') list.sort((a,b) => a.title.localeCompare(b.title));
-else if (sort === 'duration') list.sort((a,b) => b.durationMin - a.durationMin);
-return list;
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  let list = videos.filter(v => {
+    if (currentFilter !== 'all' && v.level !== currentFilter) return false;
+    if (q && !v.title.toLowerCase().includes(q) && !(v.tags||[]).join(' ').toLowerCase().includes(q) && !v.instructor.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if (sort === 'newest') list.sort((a,b) => b.date.localeCompare(a.date));
+  else if (sort === 'oldest') list.sort((a,b) => a.date.localeCompare(b.date));
+  else if (sort === 'az') list.sort((a,b) => a.title.localeCompare(b.title));
+  else if (sort === 'duration') list.sort((a,b) => b.durationMin - a.durationMin);
+  return list;
 }
 function renderGrid() {
-const list = getFiltered();
-const grid = document.getElementById('videoGrid');
-const empty = document.getElementById('emptyState');
-document.getElementById('totalCount').textContent = videos.length;
-document.getElementById('totalHours').textContent = Math.round(videos.reduce((s,v) => s+(v.durationMin||0), 0) / 60) + 'h';
-document.getElementById('sectionHeading').textContent = currentFilter === 'all' ? 'All sessions' : currentFilter + ' sessions';
-if (list.length === 0) {
-grid.innerHTML = '';
-document.getElementById('emptyMsg').textContent = videos.length === 0 ? 'No sessions yet — add the first one!' : 'No sessions match your search.';
-empty.style.display = 'block';
-return;
-}
-empty.style.display = 'none';
-grid.innerHTML = list.map(v =>      <div class="card">       <div class="card-thumb" onclick="openVideo(${v.id})" style="cursor:pointer">         <div class="thumb-bg" style="background:${v.color||'#d8edde'}">${v.emoji||'📄'}</div>         <div class="thumb-overlay"><div class="play-btn"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3.5l8 4.5-8 4.5V3.5z" fill="#1e1a14"/></svg></div></div>         <span class="card-duration">${v.duration}</span>         <span class="card-level ${levelClass(v.level)}">${v.level}</span>       </div>       <div class="card-body" onclick="openVideo(${v.id})" style="cursor:pointer">         <div class="card-date">${fmtDate(v.date)}</div>         <div class="card-title">${v.title}</div>         <div class="card-desc">${v.desc}</div>         <div class="card-footer">           <div class="tags">${(v.tags||[]).slice(0,2).map(t=><span class="tag">${t}</span>).join('')}</div>           <div class="card-instructor"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="4" r="2.5" fill="none" stroke="currentColor" stroke-width="1"/><path d="M1 11c0-2.76 2.24-5 5-5s5 2.24 5 5" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${v.instructor.split(' ').pop()}</div>         </div>       </div>       ${isAdmin() ? <div class="card-actions">
-<button class="card-edit-btn" onclick="openEditModal(${v.id})">
-<svg width="12" height="12" viewBox="0 0 12 12"><path d="M8.5 1.5l2 2L3 11H1V9L8.5 1.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-Edit
-</button>
-<button class="card-del-btn" onclick="deleteVideo(${v.id})" title="Delete">
-<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 3h8M5 3V2h2v1M4 3v6h4V3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</button>
-</div> : ''}     </div>).join('');
+  const list = getFiltered();
+  const grid = document.getElementById('videoGrid');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('totalCount').textContent = videos.length;
+  document.getElementById('totalHours').textContent = Math.round(videos.reduce((s,v) => s+(v.durationMin||0), 0) / 60) + 'h';
+  document.getElementById('sectionHeading').textContent = currentFilter === 'all' ? 'All sessions' : currentFilter + ' sessions';
+  if (list.length === 0) {
+    grid.innerHTML = '';
+    document.getElementById('emptyMsg').textContent = videos.length === 0 ? 'No sessions yet — add the first one!' : 'No sessions match your search.';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = list.map(v => `
+    <div class="card">
+      <div class="card-thumb" onclick="openVideo(${v.id})" style="cursor:pointer">
+        <div class="thumb-bg" style="background:${v.color||'#d8edde'}">${v.emoji||'📄'}</div>
+        <div class="thumb-overlay"><div class="play-btn"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M5 3.5l8 4.5-8 4.5V3.5z" fill="#1e1a14"/></svg></div></div>
+        <span class="card-duration">${v.duration}</span>
+        <span class="card-level ${levelClass(v.level)}">${v.level}</span>
+      </div>
+      <div class="card-body" onclick="openVideo(${v.id})" style="cursor:pointer">
+        <div class="card-date">${fmtDate(v.date)}</div>
+        <div class="card-title">${v.title}</div>
+        <div class="card-desc">${v.desc}</div>
+        <div class="card-footer">
+          <div class="tags">${(v.tags||[]).slice(0,2).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="card-instructor"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="4" r="2.5" fill="none" stroke="currentColor" stroke-width="1"/><path d="M1 11c0-2.76 2.24-5 5-5s5 2.24 5 5" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${v.instructor.split(' ').pop()}</div>
+        </div>
+      </div>
+      ${isAdmin() ? `<div class="card-actions">
+        <button class="card-edit-btn" onclick="openEditModal(${v.id})">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M8.5 1.5l2 2L3 11H1V9L8.5 1.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          Edit
+        </button>
+        <button class="card-del-btn" onclick="deleteVideo(${v.id})" title="Delete">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 3h8M5 3V2h2v1M4 3v6h4V3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>` : ''}
+    </div>`).join('');
 }
 function setFilter(f, btn) {
-currentFilter = f;
-document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-btn.classList.add('active');
-renderGrid();
+  currentFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
 }
 document.getElementById('searchInput').addEventListener('input', renderGrid);
 function openVideo(id) {
-const v = videos.find(x => x.id === id);
-if (!v) return;
-const th = document.getElementById('modalThumb');
-th.style.background = v.color || '#d8edde';
-const prev = th.querySelector('.modal-emoji');
-if (prev) prev.remove();
-const em = document.createElement('span');
-em.className = 'modal-emoji';
-em.style.fontSize = '72px';
-em.textContent = v.emoji || '📄';
-th.appendChild(em);
-const lvlEl = document.getElementById('modalLevel');
-lvlEl.textContent = v.level;
-lvlEl.className = 'card-level ' + levelClass(v.level);
-document.getElementById('modalDate').textContent = fmtDate(v.date);
-document.getElementById('modalTitle').textContent = v.title;
-document.getElementById('modalDesc').textContent = v.desc;
-document.getElementById('modalDuration').textContent = v.duration;
-document.getElementById('modalInstructor').textContent = v.instructor;
-document.getElementById('modalLevelText').textContent = v.level;
-document.getElementById('modalAttendees').textContent = (v.attendees||0) + ' members';
-document.getElementById('modalTags').innerHTML = (v.tags||[]).map(t=><span class="tag" style="font-size:12px;padding:4px 10px;">${t}</span>).join('');
-const wb = document.getElementById('watchBtn');
-wb.disabled = !v.url;
-wb.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 4l6 4-6 4V4z" fill="#fff"/></svg> ' + (v.url ? 'Watch Recording' : 'No link added yet');
-wb.onclick = v.url ? () => window.open(v.url, '_blank') : null;
-document.getElementById('detailModal').classList.add('open');
+  const v = videos.find(x => x.id === id);
+  if (!v) return;
+  const th = document.getElementById('modalThumb');
+  th.style.background = v.color || '#d8edde';
+  const prev = th.querySelector('.modal-emoji');
+  if (prev) prev.remove();
+  const em = document.createElement('span');
+  em.className = 'modal-emoji';
+  em.style.fontSize = '72px';
+  em.textContent = v.emoji || '📄';
+  th.appendChild(em);
+  const lvlEl = document.getElementById('modalLevel');
+  lvlEl.textContent = v.level;
+  lvlEl.className = 'card-level ' + levelClass(v.level);
+  document.getElementById('modalDate').textContent = fmtDate(v.date);
+  document.getElementById('modalTitle').textContent = v.title;
+  document.getElementById('modalDesc').textContent = v.desc;
+  document.getElementById('modalDuration').textContent = v.duration;
+  document.getElementById('modalInstructor').textContent = v.instructor;
+  document.getElementById('modalLevelText').textContent = v.level;
+  document.getElementById('modalAttendees').textContent = (v.attendees||0) + ' members';
+  document.getElementById('modalTags').innerHTML = (v.tags||[]).map(t=>`<span class="tag" style="font-size:12px;padding:4px 10px;">${t}</span>`).join('');
+  const wb = document.getElementById('watchBtn');
+  wb.disabled = !v.url;
+  wb.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M6 4l6 4-6 4V4z" fill="#fff"/></svg> ' + (v.url ? 'Watch Recording' : 'No link added yet');
+  wb.onclick = v.url ? () => window.open(v.url, '_blank') : null;
+  document.getElementById('detailModal').classList.add('open');
 }
 function closeDetailModal() {
-document.getElementById('detailModal').classList.remove('open');
-const em = document.querySelector('.modal-emoji');
-if (em) em.remove();
+  document.getElementById('detailModal').classList.remove('open');
+  const em = document.querySelector('.modal-emoji');
+  if (em) em.remove();
 }
 function openAddModal() {
-document.getElementById('f_date').value = new Date().toISOString().slice(0,10);
-document.getElementById('addModal').classList.add('open');
+  document.getElementById('f_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('addModal').classList.add('open');
 }
 function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
 async function saveVideo() {
-const title = document.getElementById('f_title').value.trim();
-if (!title) { alert('Please enter a session title.'); return; }
-const tagStr = document.getElementById('f_tags').value;
-const tags = tagStr ? tagStr.split(',').map(t=>t.trim()).filter(Boolean) : [];
-const dStr = document.getElementById('f_duration').value.trim() || '1h';
-const dMin = (() => {
-let m = 0;
-const h = dStr.match(/(\d+)\sh/), mn = dStr.match(/(\d+)\sm/);
-if (h) m += parseInt(h[1])*60;
-if (mn) m += parseInt(mn[1]);
-return m || 60;
-})();
-const newV = {
-id: Date.now(), title,
-date: document.getElementById('f_date').value || new Date().toISOString().slice(0,10),
-duration: dStr, durationMin: dMin,
-level: document.getElementById('f_level').value,
-instructor: document.getElementById('f_instructor').value.trim() || 'Club Leader',
-emoji: document.getElementById('f_emoji').value.trim() || '📄',
-color: document.getElementById('f_color').value,
-desc: document.getElementById('f_desc').value.trim() || 'Session recording.',
-tags, attendees: parseInt(document.getElementById('f_attendees').value)||0,
-url: document.getElementById('f_url').value.trim(),
-};
-const btn = document.getElementById('saveBtn');
-btn.disabled = true; btn.textContent = 'Saving…';
-videos.unshift(newV);
-const ok = await persistVideos();
-btn.disabled = false; btn.textContent = 'Save Session';
-if (ok) {
-closeAddModal();
-['f_title','f_desc','f_duration','f_instructor','f_url','f_tags','f_emoji','f_attendees'].forEach(id => document.getElementById(id).value = '');
-document.getElementById('f_level').value = 'Beginner';
-renderGrid();
-} else { videos.shift(); }
+  const title = document.getElementById('f_title').value.trim();
+  if (!title) { alert('Please enter a session title.'); return; }
+  const tagStr = document.getElementById('f_tags').value;
+  const tags = tagStr ? tagStr.split(',').map(t=>t.trim()).filter(Boolean) : [];
+  const dStr = document.getElementById('f_duration').value.trim() || '1h';
+  const dMin = (() => {
+    let m = 0;
+    const h = dStr.match(/(\d+)\s*h/), mn = dStr.match(/(\d+)\s*m/);
+    if (h) m += parseInt(h[1])*60;
+    if (mn) m += parseInt(mn[1]);
+    return m || 60;
+  })();
+  const newV = {
+    id: Date.now(), title,
+    date: document.getElementById('f_date').value || new Date().toISOString().slice(0,10),
+    duration: dStr, durationMin: dMin,
+    level: document.getElementById('f_level').value,
+    instructor: document.getElementById('f_instructor').value.trim() || 'Club Leader',
+    emoji: document.getElementById('f_emoji').value.trim() || '📄',
+    color: document.getElementById('f_color').value,
+    desc: document.getElementById('f_desc').value.trim() || 'Session recording.',
+    tags, attendees: parseInt(document.getElementById('f_attendees').value)||0,
+    url: document.getElementById('f_url').value.trim(),
+  };
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  videos.unshift(newV);
+  const ok = await persistVideos();
+  btn.disabled = false; btn.textContent = 'Save Session';
+  if (ok) {
+    closeAddModal();
+    ['f_title','f_desc','f_duration','f_instructor','f_url','f_tags','f_emoji','f_attendees'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f_level').value = 'Beginner';
+    renderGrid();
+  } else { videos.shift(); }
 }
 let editingId = null;
 function openEditModal(id) {
-const v = videos.find(x => x.id === id);
-if (!v) return;
-editingId = id;
-document.getElementById('e_title').value = v.title;
-document.getElementById('e_desc').value = v.desc;
-document.getElementById('e_date').value = v.date;
-document.getElementById('e_duration').value = v.duration;
-document.getElementById('e_level').value = v.level;
-document.getElementById('e_instructor').value = v.instructor;
-document.getElementById('e_url').value = v.url || '';
-document.getElementById('e_tags').value = (v.tags||[]).join(', ');
-document.getElementById('e_emoji').value = v.emoji || '';
-document.getElementById('e_attendees').value = v.attendees || '';
-document.getElementById('e_color').value = v.color || '#d8edde';
-document.getElementById('editModal').classList.add('open');
+  const v = videos.find(x => x.id === id);
+  if (!v) return;
+  editingId = id;
+  document.getElementById('e_title').value = v.title;
+  document.getElementById('e_desc').value = v.desc;
+  document.getElementById('e_date').value = v.date;
+  document.getElementById('e_duration').value = v.duration;
+  document.getElementById('e_level').value = v.level;
+  document.getElementById('e_instructor').value = v.instructor;
+  document.getElementById('e_url').value = v.url || '';
+  document.getElementById('e_tags').value = (v.tags||[]).join(', ');
+  document.getElementById('e_emoji').value = v.emoji || '';
+  document.getElementById('e_attendees').value = v.attendees || '';
+  document.getElementById('e_color').value = v.color || '#d8edde';
+  document.getElementById('editModal').classList.add('open');
 }
 function closeEditModal() {
-document.getElementById('editModal').classList.remove('open');
-editingId = null;
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
 }
 async function saveEdit() {
-if (!editingId) return;
-const title = document.getElementById('e_title').value.trim();
-if (!title) { alert('Please enter a session title.'); return; }
-const tagStr = document.getElementById('e_tags').value;
-const tags = tagStr ? tagStr.split(',').map(t=>t.trim()).filter(Boolean) : [];
-const dStr = document.getElementById('e_duration').value.trim() || '1h';
-const dMin = (() => {
-let m = 0;
-const h = dStr.match(/(\d+)\sh/), mn = dStr.match(/(\d+)\sm/);
-if (h) m += parseInt(h[1])*60;
-if (mn) m += parseInt(mn[1]);
-return m || 60;
-})();
-const idx = videos.findIndex(x => x.id === editingId);
-if (idx === -1) return;
-const updated = { ...videos[idx], title,
-date: document.getElementById('e_date').value,
-duration: dStr, durationMin: dMin,
-level: document.getElementById('e_level').value,
-instructor: document.getElementById('e_instructor').value.trim() || 'Club Leader',
-emoji: document.getElementById('e_emoji').value.trim() || '📄',
-color: document.getElementById('e_color').value,
-desc: document.getElementById('e_desc').value.trim() || 'Session recording.',
-tags, attendees: parseInt(document.getElementById('e_attendees').value)||0,
-url: document.getElementById('e_url').value.trim(),
-};
-const btn = document.getElementById('editSaveBtn');
-btn.disabled = true; btn.textContent = 'Saving…';
-const original = videos[idx];
-videos[idx] = updated;
-const ok = await persistVideos();
-btn.disabled = false; btn.textContent = 'Save Changes';
-if (ok) { closeEditModal(); renderGrid(); }
-else { videos[idx] = original; }
+  if (!editingId) return;
+  const title = document.getElementById('e_title').value.trim();
+  if (!title) { alert('Please enter a session title.'); return; }
+  const tagStr = document.getElementById('e_tags').value;
+  const tags = tagStr ? tagStr.split(',').map(t=>t.trim()).filter(Boolean) : [];
+  const dStr = document.getElementById('e_duration').value.trim() || '1h';
+  const dMin = (() => {
+    let m = 0;
+    const h = dStr.match(/(\d+)\s*h/), mn = dStr.match(/(\d+)\s*m/);
+    if (h) m += parseInt(h[1])*60;
+    if (mn) m += parseInt(mn[1]);
+    return m || 60;
+  })();
+  const idx = videos.findIndex(x => x.id === editingId);
+  if (idx === -1) return;
+  const updated = { ...videos[idx], title,
+    date: document.getElementById('e_date').value,
+    duration: dStr, durationMin: dMin,
+    level: document.getElementById('e_level').value,
+    instructor: document.getElementById('e_instructor').value.trim() || 'Club Leader',
+    emoji: document.getElementById('e_emoji').value.trim() || '📄',
+    color: document.getElementById('e_color').value,
+    desc: document.getElementById('e_desc').value.trim() || 'Session recording.',
+    tags, attendees: parseInt(document.getElementById('e_attendees').value)||0,
+    url: document.getElementById('e_url').value.trim(),
+  };
+  const btn = document.getElementById('editSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const original = videos[idx];
+  videos[idx] = updated;
+  const ok = await persistVideos();
+  btn.disabled = false; btn.textContent = 'Save Changes';
+  if (ok) { closeEditModal(); renderGrid(); }
+  else { videos[idx] = original; }
 }
 async function deleteVideo(id) {
-if (!confirm('Delete this session? This cannot be undone.')) return;
-const idx = videos.findIndex(x => x.id === id);
-if (idx === -1) return;
-const removed = videos.splice(idx, 1);
-const ok = await persistVideos();
-if (!ok) { videos.splice(idx, 0, removed[0]); }
-else { renderGrid(); }
+  if (!confirm('Delete this session? This cannot be undone.')) return;
+  const idx = videos.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  const removed = videos.splice(idx, 1);
+  const ok = await persistVideos();
+  if (!ok) { videos.splice(idx, 0, removed[0]); }
+  else { renderGrid(); }
 }
 function isAdmin() { return sessionStorage.getItem(ADMIN_KEY) === '1'; }
 function init() {
-if (isAdmin()) document.getElementById('addVideoBtn').style.display = 'flex';
-loadVideos();
+  if (isAdmin()) document.getElementById('addVideoBtn').style.display = 'flex';
+  loadVideos();
 }
 if (sessionStorage.getItem(SESSION_KEY) === '1') {
-document.getElementById('gate').style.display = 'none';
-init();
+  document.getElementById('gate').style.display = 'none';
+  init();
 }
 </script>
 </body>
